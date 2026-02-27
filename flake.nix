@@ -1,0 +1,33 @@
+{
+  description = "Ryear's NixOS Configuration with Flakes";
+
+  inputs = {
+    # NixOS 官方源，锁定 25.11 分支
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    
+    # 或者使用 unstable 获取最新软件
+    # nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    
+    # Home Manager（先注释，后续启用）
+    # home-manager = {
+    #   url = "github:nix-community/home-manager/release-25.11";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
+  };
+
+  outputs = { self, nixpkgs, ... }@inputs:
+    let
+      system = "x86_64-linux";
+      pkgs = nixpkgs.legacyPackages.${system};
+    in
+    {
+      # NixOS 系统配置
+      nixosConfigurations.reyear-nixos = nixpkgs.lib.nixosSystem {
+        inherit system;
+        specialArgs = { inherit inputs; };
+        modules = [
+          ./hosts/reyear-nixos/configuration.nix
+        ];
+      };
+    };
+}
