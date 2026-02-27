@@ -14,8 +14,8 @@
   # 主机名
   networking.hostName = "reyear-nixos";
 
-  # 时区（默认 UTC，如需修改取消注释并修改）
-  # time.timeZone = "Asia/Shanghai";
+  # 时区：上海
+  time.timeZone = "Asia/Shanghai";
 
   # ============================================
   # 引导与内核
@@ -52,6 +52,17 @@
       '';
     };
   };
+
+  # ============================================
+  # Swap 配置（16GB swapfile）
+  # ============================================
+
+  swapDevices = [
+    {
+      device = "/swapfile";
+      size = 16 * 1024; # 16GB，单位 MB
+    }
+  ];
 
   # ============================================
   # Nix 包管理器与 Generation 深度配置
@@ -103,7 +114,9 @@
   };
 
   # 禁用自动升级，手动控制 generation
-  system.autoUpgrade.enable = lib.mkDefault false;
+  # 作用：阻止 NixOS 自动下载和应用更新，避免意外的系统变更
+  # 你需要手动运行 nixos-rebuild switch 来升级，确保可控性
+  system.autoUpgrade.enable = false;
 
   # ============================================
   # 网络配置
@@ -191,7 +204,7 @@
   nixpkgs.config.allowUnfree = true;
 
   # ============================================
-  # 备份与灾难恢复（方案1修复版）
+  # 备份与灾难恢复（修复版）
   # ============================================
 
   system.activationScripts.git-backup = {
@@ -200,39 +213,41 @@
       # 设置环境
       export PATH="${pkgs.git}/bin:${pkgs.openssh}/bin:${pkgs.coreutils}/bin:${pkgs.rsync}/bin:$PATH"
       
-      # 关键：使用 reyear 用户的主目录
-      REYEAR_HOME="/home/reyear"
-      export HOME="$REYEAR_HOME"
+      # 关键：设置 HOME 环境变量
+      export HOME=/home/reyear
       
-      # 备份到根分区（ext4/btrfs，支持权限）
+      # SSH 配置路径
+      SSH_DIR="/home/reyear/.ssh"
+      IDENTITY_FILE="$SSH_DIR/id_ed25519"
+      KNOWN_HOSTS="$SSH_DIR/known_hosts"
+      
+      # 备份到根分区
       mkdir -p /var/backup/nixos-config
       ${pkgs.rsync}/bin/rsync -a --delete /etc/nixos/ /var/backup/nixos-config/
       
-      # Git 操作
-      cd /etc/nixos
+      # Git 配置（使用显式 gitconfig 文件路径）
+      export GIT_CONFIG_GLOBAL="/home/reyear/.gitconfig"
+      ${pkgs.git}/bin/git config --file "$GIT_CONFIG_GLOBAL" user.name "reyear"
+      ${pkgs.git}/bin/git config --file "$GIT_CONFIG_GLOBAL" user.email "reyearocean@qq.com"
+      ${pkgs.git}/bin/git config --file "$GIT_CONFIG_GLOBAL" --add safe.directory /etc/nixos
       
-      # 使用 reyear 用户的 git 配置
-      ${pkgs.git}/bin/git config --global --file "$REYEAR_HOME/.gitconfig" user.name "reyear"
-      ${pkgs.git}/bin/git config --global --file "$REYEAR_HOME/.gitconfig" user.email "reyearocean@qq.com"
-      ${pkgs.git}/bin/git config --global --add safe.directory /etc/nixos 2>/dev/null || true
-      
-      # SSH 配置：明确指定 known_hosts 路径
-      mkdir -p "$REYEAR_HOME/.ssh"
-      if [ ! -f "$REYEAR_HOME/.ssh/known_hosts" ] || ! grep -q "github.com" "$REYEAR_HOME/.ssh/known_hosts" 2>/dev/null; then
-        ${pkgs.openssh}/bin/ssh-keyscan -H github.com >> "$REYEAR_HOME/.ssh/known_hosts" 2>/dev/null
+      # 确保 SSH 目录权限正确
+      if [ -d "$SSH_DIR" ]; then
+        chown reyear:users "$SSH_DIR" 2>/dev/null || true
+        chmod 700 "$SSH_DIR" 2>/dev/null || true
+        [ -f "$IDENTITY_FILE" ] && chmod 600 "$IDENTITY_FILE" 2>/dev/null || true
+        [ -f "$KNOWN_HOSTS" ] && chmod 600 "$KNOWN_HOSTS" 2>/dev/null || true
       fi
-      chown reyear:users "$REYEAR_HOME/.ssh" "$REYEAR_HOME/.ssh/known_hosts" 2>/dev/null || true
-      chmod 700 "$REYEAR_HOME/.ssh"
-      chmod 600 "$REYEAR_HOME/.ssh/known_hosts" 2>/dev/null || true
       
-      # 使用 GIT_SSH_COMMAND 明确指定 SSH 配置
-      export GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh -i $REYEAR_HOME/.ssh/id_ed25519 -o UserKnownHostsFile=$REYEAR_HOME/.ssh/known_hosts -o StrictHostKeyChecking=accept-new"
+      # 关键：使用 GIT_SSH_COMMAND 明确指定所有 SSH 参数
+      export GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh -i $IDENTITY_FILE -o UserKnownHostsFile=$KNOWN_HOSTS -o StrictHostKeyChecking=accept-new"
       
       # 提交并推送
+      cd /etc/nixos
       ${pkgs.git}/bin/git add -A
       if ! ${pkgs.git}/bin/git diff --cached --quiet; then
         ${pkgs.git}/bin/git commit -m "nixos-rebuild: $(date '+%Y-%m-%d %H:%M:%S')"
-        ${pkgs.git}/bin/git push origin main 2>&1 || echo "Git push failed"
+        ${pkgs.git}/bin/git push origin main 2>&1 && echo "Git push successful" || echo "Git push failed"
       fi
     '';
   };
