@@ -15,19 +15,26 @@
       allowedUDPPorts = [ 53 67 68 ];   # DNS, DHCP
       allowPing = true;
     };
-    # 启用 mDNS（局域网设备发现）
-    mdns = {
-      enable = true;
-      reflector = true;
-    };
-    # 启用 IPv6
     enableIPv6 = true;
   };
 
   # 时间同步
   services.timesyncd.enable = true;
 
-  # 代理工具（您现有的 throne 配置）
+  # mDNS（局域网设备发现）- 通过 avahi 实现
+  # 注意：services 应该与 networking 同级，不在 networking 内部
+  services.avahi = {
+    enable = true;
+    nssmdns = true;
+    openFirewall = true;
+    publish = {
+      enable = true;
+      addresses = true;
+      workstation = true;
+    };
+  };
+
+  # 代理工具
   programs.throne = {
     enable = true;
     tunMode.enable = true;
