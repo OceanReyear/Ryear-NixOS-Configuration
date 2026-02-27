@@ -1,328 +1,287 @@
 { config, lib, pkgs, inputs, ... }:
 
 {
+  # ============================================
+  # NixOS 主配置文件 - 模块化入口
+  # ============================================
+
+  # 导入硬件配置（自动生成，不要修改）
   imports = [
     ./hardware-configuration.nix
+    
+    # 功能模块
+    ../../modules/btrfs.nix
+    ../../modules/boot.nix
+    ../../modules/desktop.nix
+    ../../modules/network.nix
+    ../../modules/nix.nix
+    ../../modules/users.nix
+    ../../modules/security.nix
+    ../../modules/snapper.nix
+    ../../modules/fonts.nix
+    
+    # Home Manager 模块（将在步骤5启用）
+    # inputs.home-manager.nixosModules.home-manager
   ];
 
   # ============================================
-  # Btrfs 优化配置（强制覆盖 hardware-configuration.nix）
+  # 系统基础配置（保留在入口文件中的核心配置）
   # ============================================
 
-  fileSystems = {
-    "/" = lib.mkForce {
-      device = "/dev/mapper/cryptroot";
-      fsType = "btrfs";
-      options = [ "subvol=@" "compress=zstd:3" "noatime" "discard=async" ];
-    };
-    
-    "/home" = lib.mkForce {
-      device = "/dev/mapper/cryptroot";
-      fsType = "btrfs";
-      options = [ "subvol=@home" "compress=zstd:3" "noatime" "discard=async" ];
-    };
-    
-    "/nix" = lib.mkForce {
-      device = "/dev/mapper/cryptroot";
-      fsType = "btrfs";
-      options = [ "subvol=@nix" "compress=zstd:3" "noatime" "discard=async" ];
-    };
-    
-    "/var/log" = lib.mkForce {
-      device = "/dev/mapper/cryptroot";
-      fsType = "btrfs";
-      options = [ "subvol=@log" "compress=zstd:3" "noatime" "discard=async" ];
-    };
-    
-    "/vms" = lib.mkForce {
-      device = "/dev/mapper/cryptroot";
-      fsType = "btrfs";
-      options = [ "subvol=@vms" "noatime" "discard=async" ];
-    };
-  };
-
-  # 设置 /vms 的 NoCOW 属性
-  system.activationScripts.vms-nocow = {
-    deps = [ "specialfs" ];
-    text = ''
-      if [ -d /vms ]; then
-        ${pkgs.e2fsprogs}/bin/chattr +C /vms 2>/dev/null || true
-      fi
-    '';
-  };
-
-  
-    # ============================================
-  # 快照管理（Snapper）
-  # ============================================
-
-  services.snapper = {
-    configs = {
-      root = {
-        SUBVOLUME = "/";
-        filesystem = "btrfs";
-        TIMELINE_CREATE = true;
-        TIMELINE_CLEANUP = true;
-        TIMELINE_LIMIT_HOURLY = "3";
-        TIMELINE_LIMIT_DAILY = "7";
-        TIMELINE_LIMIT_WEEKLY = "4";
-        TIMELINE_LIMIT_MONTHLY = "12";
-        cleanup = "timeline";
-        prePostEnable = true;
-        exclude = [ "/vms" "/tmp" "/var/tmp" "/var/cache" ];
-      };
-
-      home = {
-        SUBVOLUME = "/home";
-        filesystem = "btrfs";
-        TIMELINE_CREATE = true;
-        TIMELINE_CLEANUP = true;
-        TIMELINE_LIMIT_HOURLY = "3";
-        TIMELINE_LIMIT_DAILY = "7";
-        TIMELINE_LIMIT_WEEKLY = "4";
-        cleanup = "timeline";
-      };
-    };
-  };
-
-  services.snapper.cleanupInterval = "1d";
-
-  services.btrfs.autoScrub = {
-    enable = true;
-    interval = "monthly";
-    fileSystems = [ "/" ];
-  };
-
-  # ============================================
-  # 系统基础配置
-  # ============================================
-
+  # 系统版本标识
   system.stateVersion = "25.11";
-  networking.hostName = "reyear-nixos";
+
+  # 时间配置
   time.timeZone = "Asia/Shanghai";
 
-  # ============================================
-  # 引导与内核
-  # ============================================
-
-  boot.kernelPackages = pkgs.linuxPackages_latest;
-
-  boot.initrd.luks.devices."cryptroot" = {
-    device = "/dev/disk/by-uuid/bc1d9eea-3661-4cf9-b50e-8c3580ff1f7e";
-    allowDiscards = true;
+  # 控制台配置
+  console = {
+    font = "Lat2-Terminus16";
+    keyMap = "us";
   };
 
-  boot.loader = {
-    efi = {
-      canTouchEfiVariables = true;
-      efiSysMountPoint = "/boot";
-    };
-    grub = {
+  # ============================================
+  # 全局环境变量
+  # ============================================
+
+  environment.variables = {
+    EDITOR = "vim";
+    VISUAL = "vim";
+    PAGER = "less";
+    TERMINAL = "alacritty";
+    BROWSER = "firefox";
+  };
+
+  # ============================================
+  # 系统软件包（基础工具，具体包在 home-manager 中管理）
+  # ============================================
+
+  environment.systemPackages = with pkgs; [
+    # 系统管理工具
+    vim
+    wget
+    curl
+    git
+    htop
+    btop
+    nvtop
+    lm_sensors
+    
+    # 文件工具
+    rsync
+    unzip
+    unrar
+    p7zip
+    ripgrep
+    fd
+    fzf
+    
+    # 网络工具
+    nmap
+    tcpdump
+    wireshark
+    iperf3
+    
+    # 开发基础
+    gcc
+    gnumake
+    cmake
+    pkg-config
+    python3
+    nodejs_22
+    go
+    rustup
+    
+    # 系统工具
+    nix-output-monitor
+    nvd
+    compsize
+    btrfs-assistant
+    snapper
+    btdu
+    smartmontools
+    usbutils
+    pciutils
+    
+    # 压缩与加密
+    gnupg
+    pinentry
+    age
+    sops
+    
+    # 终端工具
+    alacritty
+    tmux
+    neofetch
+    onefetch
+    fastfetch
+    
+    # 版本控制
+    git-absorb
+    git-interactive-rebase-tool
+    delta
+    
+    # 系统优化
+    earlyoom
+    irqbalance
+    cpupower-gui
+  ];
+
+  # ============================================
+  # 系统服务（基础服务）
+  # ============================================
+
+  services = {
+    # 系统日志
+    journald.extraConfig = "SystemMaxUse=1G";
+    
+    # 系统监控
+    sysstat.enable = true;
+    
+    # 自动挂载
+    udisks2.enable = true;
+    gvfs.enable = true;
+    
+    # 定时任务
+    cron.enable = true;
+    
+    # 早期 OOM 杀手
+    earlyoom.enable = true;
+    earlyoom.freeMemThreshold = 10;
+    earlyoom.freeSwapThreshold = 10;
+  };
+
+  # ============================================
+  # 系统优化
+  # ============================================
+
+  # 内核参数优化
+  boot.kernel.sysctl = {
+    # 虚拟内存优化
+    "vm.swappiness" = 10;
+    "vm.vfs_cache_pressure" = 50;
+    "vm.dirty_ratio" = 10;
+    "vm.dirty_background_ratio" = 5;
+    # 文件系统缓存
+    "vm.page-cluster" = 3;
+  };
+
+  # ============================================
+  # 开发环境工具
+  # ============================================
+
+  programs = {
+    # direnv（环境自动加载）
+    direnv = {
       enable = true;
-      device = "nodev";
-      efiSupport = true;
-      configurationLimit = 10;
-      extraEntries = ''
-        menuentry "Windows 11" {
-          insmod part_gpt
-          insmod fat
-          insmod chain
-          search --fs-uuid --set=root F460-AA93
-          chainloader /EFI/Microsoft/Boot/bootmgfw.efi
-        }
+      nix-direnv.enable = true;
+      enableBashIntegration = true;
+    };
+    
+    # 命令行增强
+    bash.enableCompletion = true;
+    fish.enable = false;  # 如果需要 fish 可以启用
+    
+    # 开发工具
+    neovim = {
+      enable = true;
+      viAlias = true;
+      vimAlias = true;
+      defaultEditor = true;
+    };
+    
+    # 终端复用
+    tmux = {
+      enable = true;
+      shortcut = "a";
+      terminal = "screen-256color";
+      extraConfig = ''
+        set -g mouse on
+        set -g status-right "#[fg=white]%Y-%m-%d %H:%M:%S"
       '';
     };
   };
 
   # ============================================
-  # Swap 配置（16GB swapfile）
+  # 包管理器配置
   # ============================================
 
-  swapDevices = [
-    {
-      device = "/swapfile";
-      size = 16 * 1024;
-    }
-  ];
-
-  # ============================================
-  # Nix 包管理器与 Generation 深度配置
-  # ============================================
-
-  nix = {
-    gc = {
-      automatic = true;
-      dates = "23:30";  # 每晚 23:30 执行
-      options = "--delete-older-than 7d --max-freed 10G";
-      persistent = true;
-    };
-    optimise = {
-      automatic = true;
-      dates = [ "23:35" ];  # 每晚 23:35 执行，紧跟 GC 之后
-    };
-    settings = {
-      max-jobs = lib.mkDefault "auto";
-      cores = lib.mkDefault 0;
-      connect-timeout = 10;
-      stalled-download-timeout = 90;
-      keep-derivations = true;
-      keep-outputs = true;
-      sandbox = true;
-      substituters = [
-        "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
-        "https://cache.nixos.org/"
-      ];
-      trusted-public-keys = [
-        "mirrors.tuna.tsinghua.edu.cn-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
-      ];
+  nixpkgs.config = {
+    # 允许非自由软件
+    allowUnfree = true;
+    # 允许损坏包（某些旧包可能需要）
+    allowBroken = false;
+    # 包覆盖（自定义包版本）
+    packageOverrides = pkgs: {
+      # 示例：自定义包版本
+      # myPackage = pkgs.callPackage ./packages/my-package.nix {};
     };
   };
 
-  system.autoUpgrade.enable = false;
-
   # ============================================
-  # 网络配置
+  # 系统健康检查（每周执行）
   # ============================================
 
-  networking.networkmanager.enable = true;
-
-  programs.throne = {
-    enable = true;
-    tunMode.enable = true;
+  systemd.timers.system-health-check = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnCalendar = "weekly";
+      Persistent = true;
+    };
   };
 
-  # ============================================
-  # 桌面环境
-  # ============================================
-
-  services.displayManager.sddm.enable = true;
-  services.desktopManager.plasma6.enable = true;
-
-  # ============================================
-  # 用户配置
-  # ============================================
-
-  users.users.reyear = {
-    isNormalUser = true;
-    extraGroups = [ "wheel" "networkmanager" "video" "audio" ];
-    hashedPassword = "$6$IU4/Z3jWlSxOSOCu$8J2EiRmj/hUhwVzCUP/.DQQQx.NDH3qn2TIchEGl5IIamI10Zwg5mP4f5jak14AYjYhrqpFs.vTgWi6N0VaV7.";
-    home = "/home/reyear";
-    createHome = true;
-  };
-
-  # ============================================
-  # 输入法
-  # ============================================
-
-  i18n.inputMethod = {
-    type = "fcitx5";
-    enable = true;
-    fcitx5.addons = with pkgs; [
-      fcitx5-rime
-      qt6Packages.fcitx5-chinese-addons
-      fcitx5-gtk
-    ];
-  };
-
-  # ============================================
-  # 系统字体
-  # ============================================
-
-  fonts.packages = with pkgs; [
-    noto-fonts
-    noto-fonts-cjk-sans
-    noto-fonts-color-emoji
-    liberation_ttf
-    fira-code
-    fira-code-symbols
-    mplus-outline-fonts.githubRelease
-    dina-font
-    jetbrains-mono
-    proggyfonts
-  ];
-
-  # ============================================
-  # 系统软件包
-  # ============================================
-
-  nix.settings.extra-experimental-features = [ "nix-command" "flakes" ];
-
-  environment.systemPackages = with pkgs; [
-    vim
-    wget
-    git
-    unzip
-    unrar
-    btop
-    alacritty
-    vscode
-    throne
-    obsidian
-    firefox
-    nix-output-monitor
-    nvd
-    jetbrains.pycharm
-    jetbrains.webstorm
-    jetbrains.rust-rover
-    jetbrains.goland
-    jetbrains.datagrip
-    python3
-    uv
-    direnv
-    nix-direnv
-    compsize
-    btrfs-assistant
-    snapper
-    btdu
-  ];
-
-  programs.direnv = {
-    enable = true;
-    nix-direnv.enable = true;
-    enableBashIntegration = true;
-  };
-
-  nixpkgs.config.allowUnfree = true;
-
-  # ============================================
-  # 备份与灾难恢复
-  # ============================================
-
-  system.activationScripts.git-backup = {
-    deps = [ "etc" ];
-    text = ''
-      export PATH="${pkgs.git}/bin:${pkgs.openssh}/bin:${pkgs.coreutils}/bin:${pkgs.rsync}/bin:$PATH"
-      export HOME=/home/reyear
+  systemd.services.system-health-check = {
+    serviceConfig = {
+      Type = "oneshot";
+      User = "root";
+    };
+    script = ''
+      #!/bin/sh
+      echo "=== NixOS 系统健康检查 $(date) ==="
+      echo ""
       
-      SSH_DIR="/home/reyear/.ssh"
-      IDENTITY_FILE="$SSH_DIR/id_ed25519"
-      KNOWN_HOSTS="$SSH_DIR/known_hosts"
+      # 1. 检查磁盘空间
+      echo "1. 磁盘空间使用情况："
+      df -h / /home /nix /boot
+      echo ""
       
-      mkdir -p /var/backup/nixos-config
-      ${pkgs.rsync}/bin/rsync -a --delete /etc/nixos/ /var/backup/nixos-config/
+      # 2. 检查 Btrfs 健康
+      echo "2. Btrfs 文件系统状态："
+      ${pkgs.btrfs-progs}/bin/btrfs filesystem show /
+      ${pkgs.btrfs-progs}/bin/btrfs device stats / | grep -v " 0$" || echo "所有设备正常"
+      echo ""
       
-      cd /etc/nixos
-      
-      export GIT_CONFIG_GLOBAL="/home/reyear/.gitconfig"
-      ${pkgs.git}/bin/git config --file "$GIT_CONFIG_GLOBAL" user.name "reyear"
-      ${pkgs.git}/bin/git config --file "$GIT_CONFIG_GLOBAL" user.email "reyearocean@qq.com"
-      ${pkgs.git}/bin/git config --file "$GIT_CONFIG_GLOBAL" --add safe.directory /etc/nixos
-      
-      if [ -d "$SSH_DIR" ]; then
-        chown reyear:users "$SSH_DIR" 2>/dev/null || true
-        chmod 700 "$SSH_DIR" 2>/dev/null || true
-        [ -f "$IDENTITY_FILE" ] && chmod 600 "$IDENTITY_FILE" 2>/dev/null || true
-        [ -f "$KNOWN_HOSTS" ] && chmod 600 "$KNOWN_HOSTS" 2>/dev/null || true
+      # 3. 检查快照数量
+      echo "3. Snapper 快照统计："
+      if [ -f /etc/snapper/configs/root ]; then
+        ROOT_SNAPS=$(sudo snapper -c root list | wc -l)
+        echo "根目录快照数量：$((ROOT_SNAPS - 2))个"
       fi
-      
-      export GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh -i $IDENTITY_FILE -o UserKnownHostsFile=$KNOWN_HOSTS -o StrictHostKeyChecking=accept-new"
-      
-      ${pkgs.git}/bin/git add -A
-      if ! ${pkgs.git}/bin/git diff --cached --quiet; then
-        ${pkgs.git}/bin/git commit -m "nixos-rebuild: $(date '+%Y-%m-%d %H:%M:%S')"
-        ${pkgs.git}/bin/git push origin main 2>&1 && echo "Git push successful" || echo "Git push failed"
+      if [ -f /etc/snapper/configs/home ]; then
+        HOME_SNAPS=$(sudo snapper -c home list | wc -l)
+        echo "家目录快照数量：$((HOME_SNAPS - 2))个"
       fi
+      echo ""
+      
+      # 4. 检查 Nix 存储
+      echo "4. Nix 存储使用情况："
+      du -sh /nix/store 2>/dev/null || echo "无法访问 /nix/store"
+      echo ""
+      
+      # 5. 检查系统服务
+      echo "5. 关键服务状态："
+      systemctl is-active networkmanager && echo "✅ NetworkManager: 运行中"
+      systemctl is-active sshd && echo "✅ SSH: 运行中"
+      systemctl is-active sddm && echo "✅ SDDM: 运行中"
+      echo ""
+      
+      # 6. 检查系统更新
+      echo "6. 系统更新状态："
+      nix-channel --list
+      echo ""
+      
+      echo "=== 健康检查完成 ==="
     '';
+    wantedBy = [ "multi-user.target" ];
   };
 }

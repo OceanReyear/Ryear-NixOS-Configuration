@@ -1,0 +1,22 @@
+# Nix 相关
+result
+.direnv
+.gc-roots
+*.gc-roots
+
+# 编辑器临时文件
+*~
+*.swp
+*.swo
+.DS_Store
+
+# 备份文件
+*.backup
+*.bak
+
+# 日志文件
+*.log
+nixos-git-backup.log
+
+# 系统文件
+hardware-configuration.nix.backup
