@@ -15,7 +15,7 @@
   networking.hostName = "reyear-nixos";
 
   # 时区（默认 UTC，如需修改取消注释并修改）
-  time.timeZone = "Asia/Shanghai";
+  # time.timeZone = "Asia/Shanghai";
 
   # ============================================
   # 引导与内核
@@ -191,7 +191,7 @@
   nixpkgs.config.allowUnfree = true;
 
   # ============================================
-  # 备份与灾难恢复（方案1：/var/backup）
+  # 备份与灾难恢复（方案1修复版）
   # ============================================
 
   system.activationScripts.git-backup = {
@@ -199,8 +199,10 @@
     text = ''
       # 设置环境
       export PATH="${pkgs.git}/bin:${pkgs.openssh}/bin:${pkgs.coreutils}/bin:${pkgs.rsync}/bin:$PATH"
-      export HOME="/home/reyear"
-      export USER="reyear"
+      
+      # 关键：使用 reyear 用户的主目录
+      REYEAR_HOME="/home/reyear"
+      export HOME="$REYEAR_HOME"
       
       # 备份到根分区（ext4/btrfs，支持权限）
       mkdir -p /var/backup/nixos-config
@@ -208,15 +210,23 @@
       
       # Git 操作
       cd /etc/nixos
-      ${pkgs.git}/bin/git config --global --add safe.directory /etc/nixos 2>/dev/null || true
-      ${pkgs.git}/bin/git config user.name "reyear"
-      ${pkgs.git}/bin/git config user.email "reyearocean@qq.com"
       
-      # SSH 配置：自动接受 GitHub 主机密钥
-      mkdir -p ~/.ssh
-      if ! grep -q "github.com" ~/.ssh/known_hosts 2>/dev/null; then
-        ${pkgs.openssh}/bin/ssh-keyscan -H github.com >> ~/.ssh/known_hosts 2>/dev/null
+      # 使用 reyear 用户的 git 配置
+      ${pkgs.git}/bin/git config --global --file "$REYEAR_HOME/.gitconfig" user.name "reyear"
+      ${pkgs.git}/bin/git config --global --file "$REYEAR_HOME/.gitconfig" user.email "reyearocean@qq.com"
+      ${pkgs.git}/bin/git config --global --add safe.directory /etc/nixos 2>/dev/null || true
+      
+      # SSH 配置：明确指定 known_hosts 路径
+      mkdir -p "$REYEAR_HOME/.ssh"
+      if [ ! -f "$REYEAR_HOME/.ssh/known_hosts" ] || ! grep -q "github.com" "$REYEAR_HOME/.ssh/known_hosts" 2>/dev/null; then
+        ${pkgs.openssh}/bin/ssh-keyscan -H github.com >> "$REYEAR_HOME/.ssh/known_hosts" 2>/dev/null
       fi
+      chown reyear:users "$REYEAR_HOME/.ssh" "$REYEAR_HOME/.ssh/known_hosts" 2>/dev/null || true
+      chmod 700 "$REYEAR_HOME/.ssh"
+      chmod 600 "$REYEAR_HOME/.ssh/known_hosts" 2>/dev/null || true
+      
+      # 使用 GIT_SSH_COMMAND 明确指定 SSH 配置
+      export GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh -i $REYEAR_HOME/.ssh/id_ed25519 -o UserKnownHostsFile=$REYEAR_HOME/.ssh/known_hosts -o StrictHostKeyChecking=accept-new"
       
       # 提交并推送
       ${pkgs.git}/bin/git add -A
