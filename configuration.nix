@@ -123,7 +123,10 @@
   # ============================================
 
   networking.networkmanager.enable = true;
-  programs.throne.tunMode.enable = true;
+  programs.throne = {
+    enable = true;
+    tunMode.enable = true; # 关键：开启这个选项
+  };
   # ============================================
   # 桌面环境
   # ============================================
