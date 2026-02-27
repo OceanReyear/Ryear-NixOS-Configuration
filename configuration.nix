@@ -126,7 +126,6 @@
     isNormalUser = true;
     extraGroups = [ "wheel" "networkmanager" "video" "audio" ];
     hashedPassword = "$6$IU4/Z3jWlSxOSOCu$8J2EiRmj/hUhwVzCUP/.DQQQx.NDH3qn2TIchEGl5IIamI10Zwg5mP4f5jak14AYjYhrqpFs.vTgWi6N0VaV7.";
-    # 【需要检查】确保你的用户目录存在，用于 SSH 密钥存储
     home = "/home/reyear";
     createHome = true;
   };
@@ -178,7 +177,9 @@
     
     # 应用
     vscode
+    throne
     obsidian
+    v2rayn
     firefox
     
     # Generation 管理工具
@@ -190,91 +191,35 @@
   nixpkgs.config.allowUnfree = true;
 
   # ============================================
-  # 备份与灾难恢复
+  # 备份与灾难恢复（activationScripts 方案）
   # ============================================
 
-  # 方案1：完整备份到 ESP 分区（/boot）
-  systemd.services.backup-nixos-config = {
-    description = "Backup NixOS configuration to /boot";
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = pkgs.writeShellScript "backup-config" ''
-        mkdir -p /boot/nixos-config-backup
-        ${pkgs.rsync}/bin/rsync -a --delete /etc/nixos/ /boot/nixos-config-backup/
-        # 确保 Git 仓库权限正确
-        if [ -d /boot/nixos-config-backup/.git ]; then
-          ${pkgs.coreutils}/bin/chmod -R +w /boot/nixos-config-backup/.git
-        fi
-      '';
-    };
-    wantedBy = [ "nixos-rebuild-switch.service" ];
-  };
-
-  # 方案2：Git 版本控制 + 自动推送到 GitHub
-  systemd.services.nixos-config-git = {
-    description = "Auto-commit and push NixOS configuration";
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
-    
-
-    path = [ pkgs.git pkgs.openssh ];
-    
-    serviceConfig = {
-      Type = "oneshot";
-      WorkingDirectory = "/etc/nixos";
-      # 使用 reyear 用户运行，确保能访问 ~/.ssh
-      User = "reyear";
-      Group = "users";
+  system.activationScripts.git-backup = {
+    deps = [ "etc" ];
+    text = ''
+      # 设置环境
+      export PATH="${pkgs.git}/bin:${pkgs.openssh}/bin:${pkgs.coreutils}/bin:${pkgs.rsync}/bin:$PATH"
+      export HOME="/home/reyear"
+      export USER="reyear"
       
-      ExecStart = pkgs.writeShellScript "git-commit-config" ''
-        # 添加安全目录配置
-        ${pkgs.git}/bin/git config --global --add safe.directory /etc/nixos
-        
-        # 【个人信息已写死】Git 配置
-        GIT_USER_NAME="reyear"
-        GIT_USER_EMAIL="reyearocean@qq.com"
-        GIT_REPO="git@github.com:OceanReyear/Ryear-NixOS-Configuration.git"
-        
-        # 自动初始化（首次运行）
-        if [ ! -d .git ]; then
-          ${pkgs.git}/bin/git init
-          ${pkgs.git}/bin/git config user.name "$GIT_USER_NAME"
-          ${pkgs.git}/bin/git config user.email "$GIT_USER_EMAIL"
-          ${pkgs.git}/bin/git remote add origin "$GIT_REPO"
-          ${pkgs.git}/bin/git branch -M main
-          echo "Git 仓库已初始化"
-        fi
-        
-        # 确保配置正确（防止被覆盖）
-        ${pkgs.git}/bin/git config user.name "$GIT_USER_NAME"
-        ${pkgs.git}/bin/git config user.email "$GIT_USER_EMAIL"
-        
-        # 提交更改
-        ${pkgs.git}/bin/git add -A
-        ${pkgs.git}/bin/git diff --cached --quiet || {
-          ${pkgs.git}/bin/git commit -m "nixos-rebuild: $(date '+%Y-%m-%d %H:%M:%S')"
-          echo "配置已提交到本地仓库"
-          
-          # 推送到 GitHub（需要 SSH 密钥配置）
-          ${pkgs.git}/bin/git push origin main 2>&1 && {
-            echo "已成功推送到 GitHub"
-          } || {
-            echo "================================================"
-            echo "⚠️  推送失败，请检查 SSH 配置："
-            echo "1. 运行：ssh -T git@github.com"
-            echo "2. 确保 /home/reyear/.ssh/id_ed25519 存在"
-            echo "3. 公钥已添加到 GitHub: https://github.com/settings/keys"
-            echo "================================================"
-          }
-        }
-      '';
-    };
-    wantedBy = [ "nixos-rebuild-switch.service" ];
+      # 备份到 /boot
+      mkdir -p /boot/nixos-config-backup
+      ${pkgs.rsync}/bin/rsync -a --delete /etc/nixos/ /boot/nixos-config-backup/
+      
+      # Git 提交
+      cd /etc/nixos
+      
+      # 配置 Git
+      ${pkgs.git}/bin/git config --global --add safe.directory /etc/nixos 2>/dev/null || true
+      ${pkgs.git}/bin/git config user.name "reyear"
+      ${pkgs.git}/bin/git config user.email "reyearocean@qq.com"
+      
+      # 提交并推送
+      ${pkgs.git}/bin/git add -A
+      if ! ${pkgs.git}/bin/git diff --cached --quiet; then
+        ${pkgs.git}/bin/git commit -m "nixos-rebuild: $(date '+%Y-%m-%d %H:%M:%S')"
+        ${pkgs.git}/bin/git push origin main 2>&1 || echo "Git push failed, check SSH"
+      fi
+    '';
   };
-
-  # 确保 SSH 目录权限正确
-  systemd.tmpfiles.rules = [
-    "d /home/reyear/.ssh 0700 reyear users -"
-  ];
 }
-# Test automation
