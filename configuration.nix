@@ -180,6 +180,7 @@
   # ============================================
   # 系统软件包
   # ============================================
+  nix.settings.extra-experimental-features = [ "nix-command" "flakes" ];
 
   environment.systemPackages = with pkgs; [
     # 基础工具
