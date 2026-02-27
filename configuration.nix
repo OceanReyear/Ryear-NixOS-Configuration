@@ -209,8 +209,18 @@
     jetbrains.rust-rover
     jetbrains.goland
     jetbrains.datagrip
+   
+    python3
+    uv          # 现代 Python 包管理器
+    direnv      # 环境自动切换
+    nix-direnv  # nix + direnv 集成
   ];
-
+  
+  programs.direnv = {
+    enable = true;
+    nix-direnv.enable = true;  # 关键：集成缓存
+    enableBashIntegration = true;  # 或 enableZshIntegration
+  };  
   # 允许非自由软件
   nixpkgs.config.allowUnfree = true;
 
