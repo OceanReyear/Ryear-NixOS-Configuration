@@ -123,7 +123,7 @@
   # ============================================
 
   networking.networkmanager.enable = true;
-
+  programs.throne.tunMode.enable = true;
   # ============================================
   # 桌面环境
   # ============================================
@@ -194,7 +194,7 @@
     obsidian
     firefox
     v2rayn
-    
+    xray 
     # Generation 管理工具
     nix-output-monitor
     nvd
