@@ -196,8 +196,7 @@
     throne
     obsidian
     firefox
-    v2rayn
-    xray 
+ 
     # Generation 管理工具
     nix-output-monitor
     nvd
