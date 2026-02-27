@@ -201,6 +201,14 @@
     # Generation 管理工具
     nix-output-monitor
     nvd
+   
+    # 开发工具
+    ## Jetbrains系列
+    jetbrains.pycharm
+    jetbrains.webstorm
+    jetbrains.rust-rover
+    jetbrains.goland
+    jetbrains.datagrip
   ];
 
   # 允许非自由软件
