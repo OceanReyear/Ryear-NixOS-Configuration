@@ -216,6 +216,9 @@
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
     
+
+    path = [ pkgs.git pkgs.openssh ];
+    
     serviceConfig = {
       Type = "oneshot";
       WorkingDirectory = "/etc/nixos";
@@ -224,6 +227,9 @@
       Group = "users";
       
       ExecStart = pkgs.writeShellScript "git-commit-config" ''
+        # 添加安全目录配置
+        ${pkgs.git}/bin/git config --global --add safe.directory /etc/nixos
+        
         # 【个人信息已写死】Git 配置
         GIT_USER_NAME="reyear"
         GIT_USER_EMAIL="reyearocean@qq.com"
