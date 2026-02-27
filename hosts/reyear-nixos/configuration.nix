@@ -6,15 +6,99 @@
   ];
 
   # ============================================
+  # Btrfs 优化配置（强制覆盖 hardware-configuration.nix）
+  # ============================================
+
+  fileSystems = {
+    "/" = lib.mkForce {
+      device = "/dev/mapper/cryptroot";
+      fsType = "btrfs";
+      options = [ "subvol=@" "compress=zstd:3" "noatime" "discard=async" ];
+    };
+    
+    "/home" = lib.mkForce {
+      device = "/dev/mapper/cryptroot";
+      fsType = "btrfs";
+      options = [ "subvol=@home" "compress=zstd:3" "noatime" "discard=async" ];
+    };
+    
+    "/nix" = lib.mkForce {
+      device = "/dev/mapper/cryptroot";
+      fsType = "btrfs";
+      options = [ "subvol=@nix" "compress=zstd:3" "noatime" "discard=async" ];
+    };
+    
+    "/var/log" = lib.mkForce {
+      device = "/dev/mapper/cryptroot";
+      fsType = "btrfs";
+      options = [ "subvol=@log" "compress=zstd:3" "noatime" "discard=async" ];
+    };
+    
+    "/vms" = lib.mkForce {
+      device = "/dev/mapper/cryptroot";
+      fsType = "btrfs";
+      options = [ "subvol=@vms" "noatime" "discard=async" ];
+    };
+  };
+
+  # 设置 /vms 的 NoCOW 属性
+  system.activationScripts.vms-nocow = {
+    deps = [ "specialfs" ];
+    text = ''
+      if [ -d /vms ]; then
+        ${pkgs.e2fsprogs}/bin/chattr +C /vms 2>/dev/null || true
+      fi
+    '';
+  };
+
+  
+    # ============================================
+  # 快照管理（Snapper）
+  # ============================================
+
+  services.snapper = {
+    configs = {
+      root = {
+        SUBVOLUME = "/";
+        filesystem = "btrfs";
+        TIMELINE_CREATE = true;
+        TIMELINE_CLEANUP = true;
+        TIMELINE_LIMIT_HOURLY = "3";
+        TIMELINE_LIMIT_DAILY = "7";
+        TIMELINE_LIMIT_WEEKLY = "4";
+        TIMELINE_LIMIT_MONTHLY = "12";
+        cleanup = "timeline";
+        prePostEnable = true;
+        exclude = [ "/vms" "/tmp" "/var/tmp" "/var/cache" ];
+      };
+
+      home = {
+        SUBVOLUME = "/home";
+        filesystem = "btrfs";
+        TIMELINE_CREATE = true;
+        TIMELINE_CLEANUP = true;
+        TIMELINE_LIMIT_HOURLY = "3";
+        TIMELINE_LIMIT_DAILY = "7";
+        TIMELINE_LIMIT_WEEKLY = "4";
+        cleanup = "timeline";
+      };
+    };
+  };
+
+  services.snapper.cleanupInterval = "1d";
+
+  services.btrfs.autoScrub = {
+    enable = true;
+    interval = "monthly";
+    fileSystems = [ "/" ];
+  };
+
+  # ============================================
   # 系统基础配置
   # ============================================
 
   system.stateVersion = "25.11";
-
-  # 主机名
   networking.hostName = "reyear-nixos";
-
-  # 时区：上海
   time.timeZone = "Asia/Shanghai";
 
   # ============================================
@@ -23,13 +107,11 @@
 
   boot.kernelPackages = pkgs.linuxPackages_latest;
 
-  # LUKS 全盘加密
   boot.initrd.luks.devices."cryptroot" = {
     device = "/dev/disk/by-uuid/bc1d9eea-3661-4cf9-b50e-8c3580ff1f7e";
     allowDiscards = true;
   };
 
-  # GRUB 引导（UEFI + Windows 双启动）
   boot.loader = {
     efi = {
       canTouchEfiVariables = true;
@@ -39,7 +121,6 @@
       enable = true;
       device = "nodev";
       efiSupport = true;
-      # Generation 保留策略：启动菜单显示最近10个
       configurationLimit = 10;
       extraEntries = ''
         menuentry "Windows 11" {
@@ -60,7 +141,7 @@
   swapDevices = [
     {
       device = "/swapfile";
-      size = 16 * 1024; # 16GB，单位 MB
+      size = 16 * 1024;
     }
   ];
 
@@ -69,39 +150,24 @@
   # ============================================
 
   nix = {
-    # 自动垃圾回收
     gc = {
       automatic = true;
-      # 每周日凌晨2点执行
-      dates = "Sun 02:00";
-      # 保留策略：删除超过7天的 generation，但最多只释放10GB空间
+      dates = "23:30";  # 每晚 23:30 执行
       options = "--delete-older-than 7d --max-freed 10G";
       persistent = true;
     };
-
-    # 优化 Nix store（去重整理）
     optimise = {
       automatic = true;
-      dates = [ "03:00" ];
+      dates = [ "23:35" ];  # 每晚 23:35 执行，紧跟 GC 之后
     };
-
     settings = {
-      # 并行构建
       max-jobs = lib.mkDefault "auto";
       cores = lib.mkDefault 0;
-
-      # 下载超时优化
       connect-timeout = 10;
       stalled-download-timeout = 90;
-
-      # 缓存加速重建
       keep-derivations = true;
       keep-outputs = true;
-
-      # 构建沙盒
       sandbox = true;
-
-      # 镜像源配置
       substituters = [
         "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
         "https://cache.nixos.org/"
@@ -113,9 +179,6 @@
     };
   };
 
-  # 禁用自动升级，手动控制 generation
-  # 作用：阻止 NixOS 自动下载和应用更新，避免意外的系统变更
-  # 你需要手动运行 nixos-rebuild switch 来升级，确保可控性
   system.autoUpgrade.enable = false;
 
   # ============================================
@@ -123,10 +186,12 @@
   # ============================================
 
   networking.networkmanager.enable = true;
+
   programs.throne = {
     enable = true;
-    tunMode.enable = true; # 关键：开启这个选项
+    tunMode.enable = true;
   };
+
   # ============================================
   # 桌面环境
   # ============================================
@@ -180,10 +245,10 @@
   # ============================================
   # 系统软件包
   # ============================================
+
   nix.settings.extra-experimental-features = [ "nix-command" "flakes" ];
 
   environment.systemPackages = with pkgs; [
-    # 基础工具
     vim
     wget
     git
@@ -191,68 +256,59 @@
     unrar
     btop
     alacritty
-    
-    # 应用
     vscode
     throne
     obsidian
     firefox
- 
-    # Generation 管理工具
     nix-output-monitor
     nvd
-   
-    # 开发工具
-    ## Jetbrains系列
     jetbrains.pycharm
     jetbrains.webstorm
     jetbrains.rust-rover
     jetbrains.goland
     jetbrains.datagrip
-   
     python3
-    uv          # 现代 Python 包管理器
-    direnv      # 环境自动切换
-    nix-direnv  # nix + direnv 集成
+    uv
+    direnv
+    nix-direnv
+    compsize
+    btrfs-assistant
+    snapper
+    btdu
   ];
-  
+
   programs.direnv = {
     enable = true;
-    nix-direnv.enable = true;  # 关键：集成缓存
-    enableBashIntegration = true;  # 或 enableZshIntegration
-  };  
-  # 允许非自由软件
+    nix-direnv.enable = true;
+    enableBashIntegration = true;
+  };
+
   nixpkgs.config.allowUnfree = true;
 
   # ============================================
-  # 备份与灾难恢复（修复版）
+  # 备份与灾难恢复
   # ============================================
 
   system.activationScripts.git-backup = {
     deps = [ "etc" ];
     text = ''
-      # 设置环境
       export PATH="${pkgs.git}/bin:${pkgs.openssh}/bin:${pkgs.coreutils}/bin:${pkgs.rsync}/bin:$PATH"
-      
-      # 关键：设置 HOME 环境变量
       export HOME=/home/reyear
       
-      # SSH 配置路径
       SSH_DIR="/home/reyear/.ssh"
       IDENTITY_FILE="$SSH_DIR/id_ed25519"
       KNOWN_HOSTS="$SSH_DIR/known_hosts"
       
-      # 备份到根分区
       mkdir -p /var/backup/nixos-config
       ${pkgs.rsync}/bin/rsync -a --delete /etc/nixos/ /var/backup/nixos-config/
       
-      # Git 配置（使用显式 gitconfig 文件路径）
+      cd /etc/nixos
+      
       export GIT_CONFIG_GLOBAL="/home/reyear/.gitconfig"
       ${pkgs.git}/bin/git config --file "$GIT_CONFIG_GLOBAL" user.name "reyear"
       ${pkgs.git}/bin/git config --file "$GIT_CONFIG_GLOBAL" user.email "reyearocean@qq.com"
       ${pkgs.git}/bin/git config --file "$GIT_CONFIG_GLOBAL" --add safe.directory /etc/nixos
       
-      # 确保 SSH 目录权限正确
       if [ -d "$SSH_DIR" ]; then
         chown reyear:users "$SSH_DIR" 2>/dev/null || true
         chmod 700 "$SSH_DIR" 2>/dev/null || true
@@ -260,11 +316,8 @@
         [ -f "$KNOWN_HOSTS" ] && chmod 600 "$KNOWN_HOSTS" 2>/dev/null || true
       fi
       
-      # 关键：使用 GIT_SSH_COMMAND 明确指定所有 SSH 参数
       export GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh -i $IDENTITY_FILE -o UserKnownHostsFile=$KNOWN_HOSTS -o StrictHostKeyChecking=accept-new"
       
-      # 提交并推送
-      cd /etc/nixos
       ${pkgs.git}/bin/git add -A
       if ! ${pkgs.git}/bin/git diff --cached --quiet; then
         ${pkgs.git}/bin/git commit -m "nixos-rebuild: $(date '+%Y-%m-%d %H:%M:%S')"
