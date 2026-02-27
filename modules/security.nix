@@ -7,10 +7,7 @@
 
   # 系统安全基线
   security = {
-    # 启用安全启动支持
-    secureBoot = {
-      enable = lib.mkDefault false;  # 如果需要安全启动可以启用
-    };
+    
 
     # 内核安全模块
     lockKernelModules = false;  # 开发时建议禁用
