@@ -15,7 +15,7 @@
   networking.hostName = "reyear-nixos";
 
   # 时区（默认 UTC，如需修改取消注释并修改）
-  # time.timeZone = "Asia/Shanghai";
+  time.timeZone = "Asia/Shanghai";
 
   # ============================================
   # 引导与内核
@@ -179,8 +179,8 @@
     vscode
     throne
     obsidian
-    v2rayn
     firefox
+    v2rayn
     
     # Generation 管理工具
     nix-output-monitor
@@ -191,7 +191,7 @@
   nixpkgs.config.allowUnfree = true;
 
   # ============================================
-  # 备份与灾难恢复（activationScripts 方案）
+  # 备份与灾难恢复（方案1：/var/backup）
   # ============================================
 
   system.activationScripts.git-backup = {
@@ -202,23 +202,27 @@
       export HOME="/home/reyear"
       export USER="reyear"
       
-      # 备份到 /boot
-      mkdir -p /boot/nixos-config-backup
-      ${pkgs.rsync}/bin/rsync -a --delete /etc/nixos/ /boot/nixos-config-backup/
+      # 备份到根分区（ext4/btrfs，支持权限）
+      mkdir -p /var/backup/nixos-config
+      ${pkgs.rsync}/bin/rsync -a --delete /etc/nixos/ /var/backup/nixos-config/
       
-      # Git 提交
+      # Git 操作
       cd /etc/nixos
-      
-      # 配置 Git
       ${pkgs.git}/bin/git config --global --add safe.directory /etc/nixos 2>/dev/null || true
       ${pkgs.git}/bin/git config user.name "reyear"
       ${pkgs.git}/bin/git config user.email "reyearocean@qq.com"
+      
+      # SSH 配置：自动接受 GitHub 主机密钥
+      mkdir -p ~/.ssh
+      if ! grep -q "github.com" ~/.ssh/known_hosts 2>/dev/null; then
+        ${pkgs.openssh}/bin/ssh-keyscan -H github.com >> ~/.ssh/known_hosts 2>/dev/null
+      fi
       
       # 提交并推送
       ${pkgs.git}/bin/git add -A
       if ! ${pkgs.git}/bin/git diff --cached --quiet; then
         ${pkgs.git}/bin/git commit -m "nixos-rebuild: $(date '+%Y-%m-%d %H:%M:%S')"
-        ${pkgs.git}/bin/git push origin main 2>&1 || echo "Git push failed, check SSH"
+        ${pkgs.git}/bin/git push origin main 2>&1 || echo "Git push failed"
       fi
     '';
   };
