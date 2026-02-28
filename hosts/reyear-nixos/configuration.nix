@@ -246,6 +246,8 @@ in {
   services.displayManager.sddm.enable = true;
   services.desktopManager.plasma6.enable = true;
 
+  hardware.bluetooth.enable = true;
+
   # ============================================
   # 容器与虚拟机
   # ============================================
