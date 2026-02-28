@@ -51,6 +51,11 @@
 - 用户模块目录：`hosts/reyear-nixos/home/`
 - 与系统一同通过 `nixos-rebuild switch --flake ...` 构建
 
+### 6) Zsh 增强
+- 启用 `starship` 作为提示符
+- 启用 `fzf` + `fzf-tab` 作为补全增强
+- 启用 `zoxide` 作为智能目录跳转
+
 ## 变更与维护注意事项
 
 - **配置变更后必须使用 flake 构建**：
@@ -71,6 +76,12 @@
 - **Git 自动备份**：
   - 每次 `nixos-rebuild` 会自动 commit + push
   - 若网络异常或 key 不可用会影响 rebuild 速度
+
+## Zsh 使用提示
+
+- **fzf**：`Ctrl+R` 反向搜索历史
+- **zoxide**：输入 `z <关键字>` 快速跳转目录
+- **fzf-tab**：Tab 补全时支持筛选
 
 ## 故障排查
 
