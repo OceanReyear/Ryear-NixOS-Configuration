@@ -1,6 +1,8 @@
 { config, lib, pkgs, inputs, ... }:
 
-{
+let
+  resumeOffset = "14427392";
+in {
   imports = [
     ./hardware-configuration.nix
   ];
@@ -71,7 +73,7 @@
     deps = [ "specialfs" ];
     text = ''
       if [ -f /swap/swapfile ]; then
-        expected="14427392"
+        expected="${resumeOffset}"
         actual="$(${pkgs.btrfs-progs}/bin/btrfs inspect-internal map-swapfile -r /swap/swapfile 2>/dev/null || true)"
         if [ -n "$actual" ] && [ "$actual" != "$expected" ]; then
           echo "Warning: resume_offset mismatch. Expected $expected, got $actual." >&2
@@ -163,7 +165,7 @@
   };
 
   boot.resumeDevice = "/dev/mapper/cryptroot";
-  boot.kernelParams = [ "resume_offset=14427392" ];
+  boot.kernelParams = [ "resume_offset=${resumeOffset}" ];
 
   # ============================================
   # Swap 配置（40GB swapfile）
