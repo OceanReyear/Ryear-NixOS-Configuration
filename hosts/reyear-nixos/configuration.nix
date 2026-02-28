@@ -269,6 +269,7 @@
     jetbrains.datagrip
     python3
     uv
+    opencode
     direnv
     nix-direnv
     compsize
