@@ -148,6 +148,9 @@
     };
   };
 
+  boot.resumeDevice = "/dev/mapper/cryptroot";
+  boot.kernelParams = [ "resume_offset=14427392" ];
+
   # ============================================
   # Swap 配置（40GB swapfile）
   # ============================================
