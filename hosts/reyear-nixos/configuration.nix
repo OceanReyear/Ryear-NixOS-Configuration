@@ -288,41 +288,14 @@ in {
   nix.settings.extra-experimental-features = [ "nix-command" "flakes" ];
 
   environment.systemPackages = with pkgs; [
-    vim
-    wget
-    git
-    unzip
-    unrar
-    btop
-    tree
-    alacritty
-    vscode
     throne
-    obsidian
-    firefox
-    nix-output-monitor
-    nvd
-    jetbrains.pycharm
-    jetbrains.webstorm
-    jetbrains.rust-rover
-    jetbrains.goland
-    jetbrains.datagrip
-    python3
-    uv
     opencode
-    direnv
-    nix-direnv
     compsize
     btrfs-assistant
     snapper
     btdu
   ];
 
-  programs.direnv = {
-    enable = true;
-    nix-direnv.enable = true;
-    enableBashIntegration = true;
-  };
 
   nixpkgs.config.allowUnfree = true;
 

@@ -48,6 +48,7 @@
 ### 5) Home Manager
 - 作为 NixOS 模块集成
 - 用户配置入口：`hosts/reyear-nixos/home.nix`
+- 用户模块目录：`hosts/reyear-nixos/home/`
 - 与系统一同通过 `nixos-rebuild switch --flake ...` 构建
 
 ## 变更与维护注意事项
