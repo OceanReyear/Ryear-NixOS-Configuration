@@ -33,6 +33,18 @@
   - `nix develop /etc/nixos/templates/devshell-node`
   - `nix develop /etc/nixos/templates/devshell-rust`
   - `nix develop /etc/nixos/templates/devshell-go`
+  - `nix develop /etc/nixos/templates/devshell-python`
+
+## 运维脚本
+
+- `update-resume-offset.sh`：更新休眠 offset
+  - `update-resume-offset.sh`
+- `fetch-iso.sh`：下载 ISO 到 `/vms/libvirt/iso`
+  - `fetch-iso.sh <url> [sha256]`
+- `list-vms.sh`：查看 VM 目录内容
+  - `list-vms.sh`
+- `check-docker-mirror.sh`：检查 Docker 镜像源可用性
+  - `check-docker-mirror.sh`
 
 ## 关键配置
 
@@ -75,14 +87,18 @@
 - Node.js：`nodejs_22`（npm）
 - npm 国内源：`https://registry.npmmirror.com`
 - Python：`python3` + `uv`
-- Docker：rootful 模式（不自启）
+- Docker：rootful 模式（不自启），镜像源 `https://docker.mirrors.tuna.tsinghua.edu.cn`
+，镜像源：`https://docker.mirrors.tuna.tsinghua.edu.cn`
 - 虚拟机：`libvirt` + `virt-manager`
 - 虚拟机镜像路径：`/var/lib/libvirt/images` 绑定到 `/vms/libvirt/images`
 - ISO 存放路径：`/vms/libvirt/iso`
 - VM 导出/备份目录：`/vms/libvirt/vms`
 - ISO 下载脚本：`/etc/nixos/scripts/fetch-iso.sh`
 - VM 目录查看脚本：`/etc/nixos/scripts/list-vms.sh`
+- Docker 镜像源检查脚本：`/etc/nixos/scripts/check-docker-mirror.sh`
+- 脚本路径已加入用户 PATH（可直接运行脚本名）
 - devShell 模板：`/etc/nixos/templates/`
+- Python devShell：`/etc/nixos/templates/devshell-python`
 - 大文件支持：`git-lfs`
 
 ## 变更与维护注意事项

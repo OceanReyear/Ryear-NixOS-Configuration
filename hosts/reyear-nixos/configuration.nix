@@ -247,6 +247,9 @@ in {
   virtualisation.docker = {
     enable = true;
     enableOnBoot = false;
+    daemon.settings = {
+      "registry-mirrors" = [ "https://docker.mirrors.tuna.tsinghua.edu.cn" ];
+    };
   };
 
   virtualisation.libvirtd.enable = true;
