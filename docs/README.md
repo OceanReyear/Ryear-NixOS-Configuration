@@ -87,8 +87,10 @@
 - Node.js：`nodejs_22`（npm）
 - npm 国内源：`https://registry.npmmirror.com`
 - Python：`python3` + `uv`
-- Docker：rootful 模式（不自启），镜像源 `https://docker.mirrors.tuna.tsinghua.edu.cn`
-，镜像源：`https://docker.mirrors.tuna.tsinghua.edu.cn`
+- Docker：rootful 模式（不自启），镜像源：`https://docker.mirrors.tuna.tsinghua.edu.cn`
+- Docker 数据目录：`/vms/data/docker`
+- PostgreSQL 数据目录：`/vms/data/postgresql`
+- MySQL 数据目录：`/vms/data/mysql`
 - 虚拟机：`libvirt` + `virt-manager`
 - 虚拟机镜像路径：`/var/lib/libvirt/images` 绑定到 `/vms/libvirt/images`
 - ISO 存放路径：`/vms/libvirt/iso`

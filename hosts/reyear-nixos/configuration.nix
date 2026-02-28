@@ -249,11 +249,17 @@ in {
     enableOnBoot = false;
     daemon.settings = {
       "registry-mirrors" = [ "https://docker.mirrors.tuna.tsinghua.edu.cn" ];
+      "data-root" = "/vms/data/docker";
     };
   };
 
   virtualisation.libvirtd.enable = true;
   programs.virt-manager.enable = true;
+
+  services.mysql.package = pkgs.mysql;
+  services.mysql.dataDir = "/vms/data/mysql";
+
+  services.postgresql.dataDir = "/vms/data/postgresql";
 
   fileSystems."/var/lib/libvirt/images" = {
     device = "/vms/libvirt/images";
@@ -261,9 +267,15 @@ in {
   };
 
   systemd.tmpfiles.rules = [
+
+
     "d /vms/libvirt/images 0755 qemu-libvirtd qemu-libvirtd -"
     "d /vms/libvirt/iso 0755 reyear users -"
     "d /vms/libvirt/vms 0755 reyear users -"
+    "d /vms/data 0755 root root -"
+    "d /vms/data/docker 0711 root root -"
+    "d /vms/data/postgresql 0700 postgres postgres -"
+    "d /vms/data/mysql 0700 mysql mysql -"
   ];
 
   # ============================================
