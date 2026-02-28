@@ -22,6 +22,7 @@
     in
     {
       # NixOS 系统配置
+      # 文档入口：docs/README.md
       nixosConfigurations.reyear-nixos = nixpkgs.lib.nixosSystem {
         inherit system;
         specialArgs = { inherit inputs; };
