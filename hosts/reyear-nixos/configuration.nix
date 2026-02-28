@@ -35,6 +35,12 @@ in {
       fsType = "btrfs";
       options = [ "subvol=@log" "compress=zstd:3" "noatime" "discard=async" ];
     };
+
+    "/var/backup" = lib.mkForce {
+      device = "/vms/backup";
+      fsType = "none";
+      options = [ "bind" ];
+    };
     
     "/vms" = lib.mkForce {
       device = "/dev/mapper/cryptroot";
@@ -269,6 +275,8 @@ in {
   systemd.tmpfiles.rules = [
 
 
+    "d /vms/backup 0755 root root -"
+    "d /vms/backup/nixos-config 0755 root root -"
     "d /vms/libvirt/images 0755 qemu-libvirtd qemu-libvirtd -"
     "d /vms/libvirt/iso 0755 reyear users -"
     "d /vms/libvirt/vms 0755 reyear users -"
@@ -346,40 +354,56 @@ in {
   # 备份与灾难恢复
   # ============================================
 
-  system.activationScripts.git-backup = {
-    deps = [ "etc" ];
-    text = ''
+  systemd.services.nixos-config-backup = {
+    description = "Backup NixOS configuration";
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+    };
+    script = ''
       export PATH="${pkgs.git}/bin:${pkgs.openssh}/bin:${pkgs.coreutils}/bin:${pkgs.rsync}/bin:$PATH"
-      export HOME=/home/reyear
-      
+
+      BACKUP_DIR="/var/backup/nixos-config"
       SSH_DIR="/home/reyear/.ssh"
       IDENTITY_FILE="$SSH_DIR/id_ed25519"
       KNOWN_HOSTS="$SSH_DIR/known_hosts"
-      
-      mkdir -p /var/backup/nixos-config
-      ${pkgs.rsync}/bin/rsync -a --delete /etc/nixos/ /var/backup/nixos-config/
-      
-      cd /etc/nixos
-      
-      export GIT_CONFIG_GLOBAL="/home/reyear/.gitconfig"
-      ${pkgs.git}/bin/git config --file "$GIT_CONFIG_GLOBAL" user.name "reyear"
-      ${pkgs.git}/bin/git config --file "$GIT_CONFIG_GLOBAL" user.email "reyearocean@qq.com"
-      ${pkgs.git}/bin/git config --file "$GIT_CONFIG_GLOBAL" --add safe.directory /etc/nixos
-      
-      if [ -d "$SSH_DIR" ]; then
-        chown reyear:users "$SSH_DIR" 2>/dev/null || true
-        chmod 700 "$SSH_DIR" 2>/dev/null || true
-        [ -f "$IDENTITY_FILE" ] && chmod 600 "$IDENTITY_FILE" 2>/dev/null || true
-        [ -f "$KNOWN_HOSTS" ] && chmod 600 "$KNOWN_HOSTS" 2>/dev/null || true
-      fi
-      
-      export GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh -i $IDENTITY_FILE -o UserKnownHostsFile=$KNOWN_HOSTS -o StrictHostKeyChecking=accept-new"
-      
-      ${pkgs.git}/bin/git add -A
-      if ! ${pkgs.git}/bin/git diff --cached --quiet; then
-        ${pkgs.git}/bin/git commit -m "nixos-rebuild: $(date '+%Y-%m-%d %H:%M:%S')"
-        ${pkgs.git}/bin/git push origin main 2>&1 && echo "Git push successful" || echo "Git push failed"
+
+      mkdir -p "$BACKUP_DIR"
+      ${pkgs.rsync}/bin/rsync -a --delete /etc/nixos/ "$BACKUP_DIR/"
+
+      if [ -d /etc/nixos/.git ]; then
+        cd /etc/nixos
+
+        current_url="$(${pkgs.git}/bin/git -c safe.directory=/etc/nixos remote get-url origin 2>/dev/null || true)"
+        case "$current_url" in
+          https://github.com/*)
+            ${pkgs.git}/bin/git -c safe.directory=/etc/nixos remote set-url origin \
+              git@github.com:OceanReyear/Ryear-NixOS-Configuration.git
+            ;;
+        esac
+
+        if [ -f "$IDENTITY_FILE" ]; then
+          export GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh -i $IDENTITY_FILE -o UserKnownHostsFile=$KNOWN_HOSTS -o StrictHostKeyChecking=accept-new"
+        fi
+
+        ${pkgs.git}/bin/git -c safe.directory=/etc/nixos add -A
+        if ! ${pkgs.git}/bin/git -c safe.directory=/etc/nixos diff --cached --quiet; then
+          ${pkgs.git}/bin/git -c safe.directory=/etc/nixos -c user.name="reyear" -c user.email="reyearocean@qq.com" \
+            commit -m "nixos-backup: $(date '+%Y-%m-%d %H:%M:%S')"
+          ${pkgs.git}/bin/git -c safe.directory=/etc/nixos push origin main 2>&1 || echo "Git push failed"
+        fi
       fi
     '';
+  };
+
+  systemd.timers.nixos-config-backup = {
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "15min";
+      OnCalendar = "daily";
+      Persistent = true;
+      RandomizedDelaySec = "10min";
+    };
   };
 }
