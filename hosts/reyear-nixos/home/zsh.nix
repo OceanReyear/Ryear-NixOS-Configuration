@@ -19,7 +19,7 @@
       format = "$username$hostname$directory$git_branch$git_status$character";
       directory = {
         style = "cyan";
-        truncation_length = 3;
+        truncation_length = 8;
         truncation_symbol = "…/";
       };
       git_branch = { style = "yellow"; };
