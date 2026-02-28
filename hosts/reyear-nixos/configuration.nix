@@ -39,6 +39,12 @@
       fsType = "btrfs";
       options = [ "subvol=@vms" "noatime" "discard=async" ];
     };
+
+    "/swap" = lib.mkForce {
+      device = "/dev/mapper/cryptroot";
+      fsType = "btrfs";
+      options = [ "subvol=@swap" "noatime" "discard=async" "nodatacow" "compress=no" ];
+    };
   };
 
   # 设置 /vms 的 NoCOW 属性
@@ -51,8 +57,17 @@
     '';
   };
 
-  
-    # ============================================
+  system.activationScripts.swap-nocow = {
+    deps = [ "specialfs" ];
+    text = ''
+      if [ -d /swap ]; then
+        ${pkgs.e2fsprogs}/bin/chattr +C /swap 2>/dev/null || true
+        [ -f /swap/swapfile ] && ${pkgs.e2fsprogs}/bin/chattr +C /swap/swapfile 2>/dev/null || true
+      fi
+    '';
+  };
+
+  # ============================================
   # 快照管理（Snapper）
   # ============================================
 
@@ -105,7 +120,6 @@
   # 引导与内核
   # ============================================
 
-  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   boot.initrd.luks.devices."cryptroot" = {
     device = "/dev/disk/by-uuid/bc1d9eea-3661-4cf9-b50e-8c3580ff1f7e";
@@ -135,15 +149,20 @@
   };
 
   # ============================================
-  # Swap 配置（16GB swapfile）
+  # Swap 配置（40GB swapfile）
   # ============================================
 
   swapDevices = [
     {
-      device = "/swapfile";
-      size = 16 * 1024;
+      device = "/swap/swapfile";
+      size = 40 * 1024;
     }
   ];
+
+  zramSwap = {
+    enable = true;
+    memoryMax = 8 * 1024 * 1024 * 1024;
+  };
 
   # ============================================
   # Nix 包管理器与 Generation 深度配置
