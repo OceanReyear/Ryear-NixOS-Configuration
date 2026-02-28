@@ -9,6 +9,7 @@
     ./home/editors.nix
     ./home/ssh.nix
     ./home/zsh.nix
+    ./home/devtools.nix
   ];
 
   home.username = "reyear";

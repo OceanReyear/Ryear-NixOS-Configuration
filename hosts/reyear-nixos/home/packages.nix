@@ -28,6 +28,16 @@
     nodejs_22
     direnv
     nix-direnv
+    ripgrep
+    fd
+    jq
+    htop
+    httpie
+    sqlite
+    just
+    bat
+    delta
+    lazygit
   ];
 
 }

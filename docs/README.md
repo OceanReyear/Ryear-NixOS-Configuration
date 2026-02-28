@@ -29,6 +29,11 @@
   - `virt-manager`
   - `virsh list --all`
 
+- devShell 模板
+  - `nix develop /etc/nixos/templates/devshell-node`
+  - `nix develop /etc/nixos/templates/devshell-rust`
+  - `nix develop /etc/nixos/templates/devshell-go`
+
 ## 关键配置
 
 ### 1) 内核策略（稳定优先）
@@ -65,9 +70,10 @@
 - 启用 `zoxide` 作为智能目录跳转
 
 ### 7) 开发环境
-- Rust：`rustup`
+- Rust：`rustup`（默认 stable）
 - Go：`go_1_24`
 - Node.js：`nodejs_22`（npm）
+- npm 国内源：`https://registry.npmmirror.com`
 - Python：`python3` + `uv`
 - Docker：rootful 模式（不自启）
 - 虚拟机：`libvirt` + `virt-manager`
@@ -76,6 +82,7 @@
 - VM 导出/备份目录：`/vms/libvirt/vms`
 - ISO 下载脚本：`/etc/nixos/scripts/fetch-iso.sh`
 - VM 目录查看脚本：`/etc/nixos/scripts/list-vms.sh`
+- devShell 模板：`/etc/nixos/templates/`
 - 大文件支持：`git-lfs`
 
 ## 变更与维护注意事项
