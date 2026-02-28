@@ -29,6 +29,16 @@ nixos-git-backup.log
 # 系统生成文件
 hardware-configuration.nix.backup
 
+# 本地覆盖/私密配置
+/hosts/reyear-nixos/local.nix
+/hosts/reyear-nixos/secrets/
+/secrets/
+/.agenix/
+.env
+.env.*
+*.key
+*.pem
+
 # 可选：如果您不使用某些工具，可以添加
 # .vscode/          # VSCode 配置
 # .idea/            # IntelliJ IDEA 配置

@@ -387,6 +387,8 @@ in {
           export GIT_SSH_COMMAND="${pkgs.openssh}/bin/ssh -i $IDENTITY_FILE -o UserKnownHostsFile=$KNOWN_HOSTS -o StrictHostKeyChecking=accept-new"
         fi
 
+        ${pkgs.git}/bin/git -c safe.directory=/etc/nixos config user.name "reyear"
+        ${pkgs.git}/bin/git -c safe.directory=/etc/nixos config user.email "reyearocean@qq.com"
         ${pkgs.git}/bin/git -c safe.directory=/etc/nixos add -A
         if ! ${pkgs.git}/bin/git -c safe.directory=/etc/nixos diff --cached --quiet; then
           ${pkgs.git}/bin/git -c safe.directory=/etc/nixos -c user.name="reyear" -c user.email="reyearocean@qq.com" \
