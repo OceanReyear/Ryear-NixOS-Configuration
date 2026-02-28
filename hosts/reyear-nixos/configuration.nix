@@ -100,7 +100,7 @@ in {
         TIMELINE_LIMIT_MONTHLY = "12";
         cleanup = "timeline";
         prePostEnable = true;
-        exclude = [ "/vms" "/tmp" "/var/tmp" "/var/cache" ];
+        exclude = [ "/vms" "/swap" "/tmp" "/var/tmp" "/var/cache" ];
       };
 
       home = {
@@ -111,6 +111,7 @@ in {
         TIMELINE_LIMIT_HOURLY = "3";
         TIMELINE_LIMIT_DAILY = "7";
         TIMELINE_LIMIT_WEEKLY = "4";
+        exclude = [ "/swap" ];
         cleanup = "timeline";
       };
     };
