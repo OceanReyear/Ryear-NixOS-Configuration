@@ -1,6 +1,13 @@
-# Nix 相关
-result
-.direnv
+# ============================================
+# NixOS 配置仓库忽略规则 (Flakes + Configuration)
+# ============================================
+
+# Nix 构建产物
+/result
+/result-*
+
+# Nix 临时文件与缓存
+.direnv/
 .gc-roots
 *.gc-roots
 
@@ -13,10 +20,16 @@ result
 # 备份文件
 *.backup
 *.bak
+*.old
 
-# 日志文件
+# 日志文件（自动生成的）
 *.log
 nixos-git-backup.log
 
-# 系统文件
+# 系统生成文件
 hardware-configuration.nix.backup
+
+# 可选：如果您不使用某些工具，可以添加
+# .vscode/          # VSCode 配置
+# .idea/            # IntelliJ IDEA 配置
+# shell.nix         # 如果只用 Flakes

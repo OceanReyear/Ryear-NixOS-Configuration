@@ -255,6 +255,7 @@
     unzip
     unrar
     btop
+    tree
     alacritty
     vscode
     throne
