@@ -235,6 +235,8 @@ in {
   # 桌面环境
   # ============================================
 
+  programs.zsh.enable = true;
+
   services.displayManager.sddm.enable = true;
   services.desktopManager.plasma6.enable = true;
 
@@ -248,6 +250,7 @@ in {
     hashedPassword = "$6$IU4/Z3jWlSxOSOCu$8J2EiRmj/hUhwVzCUP/.DQQQx.NDH3qn2TIchEGl5IIamI10Zwg5mP4f5jak14AYjYhrqpFs.vTgWi6N0VaV7.";
     home = "/home/reyear";
     createHome = true;
+    shell = pkgs.zsh;
   };
 
   # ============================================
