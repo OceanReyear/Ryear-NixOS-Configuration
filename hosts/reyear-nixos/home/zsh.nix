@@ -14,6 +14,21 @@
   programs.starship = {
     enable = true;
     enableZshIntegration = true;
+    settings = {
+      add_newline = false;
+      format = "$username$hostname$directory$git_branch$git_status$character";
+      directory = {
+        style = "cyan";
+        truncation_length = 3;
+        truncation_symbol = "…/";
+      };
+      git_branch = { style = "yellow"; };
+      git_status = { style = "yellow"; };
+      character = {
+        success_symbol = "[➜](green)";
+        error_symbol = "[➜](red)";
+      };
+    };
   };
 
   programs.zsh = {
