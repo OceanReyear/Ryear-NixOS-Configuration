@@ -66,11 +66,14 @@
 
 ### 7) 开发环境
 - Rust：`rustup`
-- Go：`go_1_22`
+- Go：`go_1_24`
 - Node.js：`nodejs_22`（npm）
 - Python：`python3` + `uv`
 - Docker：rootful 模式（不自启）
 - 虚拟机：`libvirt` + `virt-manager`
+- 虚拟机镜像路径：`/var/lib/libvirt/images` 绑定到 `/vms/libvirt/images`
+- ISO 存放路径：`/vms/libvirt/iso`
+- VM 导出/备份目录：`/vms/libvirt/vms`
 - 大文件支持：`git-lfs`
 
 ## 变更与维护注意事项

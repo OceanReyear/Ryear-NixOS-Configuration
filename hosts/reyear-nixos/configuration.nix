@@ -259,6 +259,8 @@ in {
 
   systemd.tmpfiles.rules = [
     "d /vms/libvirt/images 0755 qemu-libvirtd qemu-libvirtd -"
+    "d /vms/libvirt/iso 0755 reyear users -"
+    "d /vms/libvirt/vms 0755 reyear users -"
   ];
 
   # ============================================
