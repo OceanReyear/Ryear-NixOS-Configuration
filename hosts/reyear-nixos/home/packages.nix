@@ -14,6 +14,9 @@
     vscode
     obsidian
     firefox
+    qq
+    wechat-uos
+    lx-music-desktop
     nix-output-monitor
     nvd
     jetbrains.pycharm
