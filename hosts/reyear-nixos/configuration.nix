@@ -252,6 +252,15 @@ in {
   virtualisation.libvirtd.enable = true;
   programs.virt-manager.enable = true;
 
+  fileSystems."/var/lib/libvirt/images" = {
+    device = "/vms/libvirt/images";
+    options = [ "bind" ];
+  };
+
+  systemd.tmpfiles.rules = [
+    "d /vms/libvirt/images 0755 qemu-libvirtd qemu-libvirtd -"
+  ];
+
   # ============================================
   # 用户配置
   # ============================================
