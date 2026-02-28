@@ -67,6 +67,20 @@
     '';
   };
 
+  system.activationScripts.resume-offset-check = {
+    deps = [ "specialfs" ];
+    text = ''
+      if [ -f /swap/swapfile ]; then
+        expected="14427392"
+        actual="$(${pkgs.btrfs-progs}/bin/btrfs inspect-internal map-swapfile -r /swap/swapfile 2>/dev/null || true)"
+        if [ -n "$actual" ] && [ "$actual" != "$expected" ]; then
+          echo "Warning: resume_offset mismatch. Expected $expected, got $actual." >&2
+          echo "Run: btrfs inspect-internal map-swapfile -r /swap/swapfile and update boot.kernelParams." >&2
+        fi
+      fi
+    '';
+  };
+
   # ============================================
   # 快照管理（Snapper）
   # ============================================
