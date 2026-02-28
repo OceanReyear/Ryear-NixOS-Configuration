@@ -8,11 +8,10 @@
     # 或者使用 unstable 获取最新软件
     # nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     
-    # Home Manager（先注释，后续启用）
-    # home-manager = {
-    #   url = "github:nix-community/home-manager/release-25.11";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
+    home-manager = {
+      url = "github:nix-community/home-manager/release-25.11";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = { self, nixpkgs, ... }@inputs:
@@ -28,6 +27,12 @@
         specialArgs = { inherit inputs; };
         modules = [
           ./hosts/reyear-nixos/configuration.nix
+          inputs.home-manager.nixosModules.home-manager
+          {
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.users.reyear = import ./hosts/reyear-nixos/home.nix;
+          }
         ];
       };
     };

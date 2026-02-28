@@ -5,6 +5,7 @@
 - `flake.nix`/`flake.lock`：系统入口与版本锁定（NixOS 25.11）
 - `hosts/reyear-nixos/`：主机配置
   - `configuration.nix`：核心系统配置
+  - `home.nix`：Home Manager 用户配置
   - `hardware-configuration.nix`：硬件检测生成（一般不手动改）
   - `README.md`：主机简要指引
 - `scripts/`：运维脚本
@@ -43,6 +44,11 @@
 ### 4) Snapper
 - Snapper 对 `/` 和 `/home` 子卷开启
 - 排除目录包含 `/vms`、`/swap`、`/tmp`、`/var/tmp`、`/var/cache`
+
+### 5) Home Manager
+- 作为 NixOS 模块集成
+- 用户配置入口：`hosts/reyear-nixos/home.nix`
+- 与系统一同通过 `nixos-rebuild switch --flake ...` 构建
 
 ## 变更与维护注意事项
 
