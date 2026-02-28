@@ -74,6 +74,8 @@
 - 虚拟机镜像路径：`/var/lib/libvirt/images` 绑定到 `/vms/libvirt/images`
 - ISO 存放路径：`/vms/libvirt/iso`
 - VM 导出/备份目录：`/vms/libvirt/vms`
+- ISO 下载脚本：`/etc/nixos/scripts/fetch-iso.sh`
+- VM 目录查看脚本：`/etc/nixos/scripts/list-vms.sh`
 - 大文件支持：`git-lfs`
 
 ## 变更与维护注意事项
