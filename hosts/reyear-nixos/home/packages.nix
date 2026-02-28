@@ -5,6 +5,7 @@
     vim
     wget
     git
+    git-lfs
     unzip
     unrar
     btop
@@ -22,7 +23,11 @@
     jetbrains.datagrip
     python3
     uv
+    rustup
+    go_1_24
+    nodejs_22
     direnv
     nix-direnv
   ];
+
 }

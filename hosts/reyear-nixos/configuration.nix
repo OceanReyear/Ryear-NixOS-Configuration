@@ -241,12 +241,24 @@ in {
   services.desktopManager.plasma6.enable = true;
 
   # ============================================
+  # 容器与虚拟机
+  # ============================================
+
+  virtualisation.docker = {
+    enable = true;
+    enableOnBoot = false;
+  };
+
+  virtualisation.libvirtd.enable = true;
+  programs.virt-manager.enable = true;
+
+  # ============================================
   # 用户配置
   # ============================================
 
   users.users.reyear = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "networkmanager" "video" "audio" ];
+    extraGroups = [ "wheel" "networkmanager" "video" "audio" "docker" "libvirtd" "kvm" ];
     hashedPassword = "$6$IU4/Z3jWlSxOSOCu$8J2EiRmj/hUhwVzCUP/.DQQQx.NDH3qn2TIchEGl5IIamI10Zwg5mP4f5jak14AYjYhrqpFs.vTgWi6N0VaV7.";
     home = "/home/reyear";
     createHome = true;
@@ -297,6 +309,7 @@ in {
     btrfs-assistant
     snapper
     btdu
+    docker-compose
   ];
 
 

@@ -21,6 +21,14 @@
   - `sudo /etc/nixos/scripts/update-resume-offset.sh`
   - 然后再运行 `sudo nixos-rebuild switch --flake /etc/nixos#reyear-nixos`
 
+- Docker
+  - `sudo systemctl start docker`
+  - `docker ps`
+
+- libvirt / virt-manager
+  - `virt-manager`
+  - `virsh list --all`
+
 ## 关键配置
 
 ### 1) 内核策略（稳定优先）
@@ -55,6 +63,15 @@
 - 启用 `starship` 作为提示符
 - 启用 `fzf` + `fzf-tab` 作为补全增强
 - 启用 `zoxide` 作为智能目录跳转
+
+### 7) 开发环境
+- Rust：`rustup`
+- Go：`go_1_22`
+- Node.js：`nodejs_22`（npm）
+- Python：`python3` + `uv`
+- Docker：rootful 模式（不自启）
+- 虚拟机：`libvirt` + `virt-manager`
+- 大文件支持：`git-lfs`
 
 ## 变更与维护注意事项
 
