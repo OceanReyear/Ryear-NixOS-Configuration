@@ -14,7 +14,7 @@
       save = 10000;
       share = true;
     };
-    initExtra = ''
+    initContent = ''
       PROMPT='%F{cyan}%~%f %# '
     '';
   };
