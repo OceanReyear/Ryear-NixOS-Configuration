@@ -16,6 +16,7 @@
     obs-studio
     wemeet
     typora
+    wpsoffice-cn
     firefox
     qq
     wechat-uos
