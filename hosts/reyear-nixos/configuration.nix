@@ -187,6 +187,38 @@ in {
   boot.kernelParams = [ "resume_offset=${resumeOffset}" ];
 
   # ============================================
+  # 控制台配置（美化 Stage 1 界面）
+  # ============================================
+  console = {
+    enable = true;
+    font = "${pkgs.terminus_font}/share/consolefonts/ter-u28n.psf.gz";
+    packages = with pkgs; [ terminus_font ];
+    earlySetup = true;  # 这会让字体在 initrd 阶段就生效
+    useXkbConfig = true;  # 如果需要在控制台使用键盘布局
+  };
+
+  # ============================================
+  # Stage 1 界面优化
+  # ============================================
+  boot.initrd = {
+    # 启用 systemd 在 initrd 中
+    systemd.enable = true;
+
+    # 设置帧缓冲控制台
+    kernelModules = [
+      "fbcon"  # 帧缓冲控制台
+    ];
+
+    # 密码输入美化
+    systemd.askPassword = {
+      enable = true;
+      # 设置密码提示文本
+      prompt = "Enter LUKS passphrase:";
+    };
+  };
+
+
+  # ============================================
   # Swap 配置（40GB swapfile）
   # ============================================
 
