@@ -346,7 +346,6 @@ in {
     snapper
     btdu
     docker-compose
-    qqmusic
   ];
 
 

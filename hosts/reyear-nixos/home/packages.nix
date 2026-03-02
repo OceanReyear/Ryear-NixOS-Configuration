@@ -14,10 +14,10 @@
     vscode
     obsidian
     obs-studio
-    wemeet
     typora
     vlc
-    wpsoffice-cn
+    libreoffice
+    davinci-resolve
     firefox
     qq
     wechat-uos
