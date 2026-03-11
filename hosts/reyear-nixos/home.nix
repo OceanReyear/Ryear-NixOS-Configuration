@@ -50,6 +50,7 @@
         magiclampEnabled=true
         desktopgridEnabled=true
         presentwindowsEnabled=true
+        scaleEnabled=false
       '';
     };
 

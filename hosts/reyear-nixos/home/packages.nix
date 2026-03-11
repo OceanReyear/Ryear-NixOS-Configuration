@@ -9,6 +9,7 @@
     unzip
     unrar
     btop
+    claude-code
     tree
     alacritty
     vscode
