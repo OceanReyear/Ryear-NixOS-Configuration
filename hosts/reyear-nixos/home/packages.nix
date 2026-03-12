@@ -19,6 +19,7 @@
     vlc
     libreoffice
     firefox
+    chrome
     lx-music-desktop
     nix-output-monitor
     nvd
