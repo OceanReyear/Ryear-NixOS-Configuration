@@ -12,6 +12,12 @@
       url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    plasma-manager = {
+      url = "github:nix-community/plasma-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
   };
 
   outputs = { self, nixpkgs, ... }@inputs:
@@ -33,6 +39,7 @@
             home-manager.useUserPackages = true;
             home-manager.users.reyear = { config, pkgs, ... }@args: {
               imports = [
+                inputs.plasma-manager.homeModules.plasma-manager
                 ./hosts/reyear-nixos/home/packages.nix
                 ./hosts/reyear-nixos/home/direnv.nix
                 ./hosts/reyear-nixos/home/git.nix
@@ -41,6 +48,7 @@
                 ./hosts/reyear-nixos/home/ssh.nix
                 ./hosts/reyear-nixos/home/zsh.nix
                 ./hosts/reyear-nixos/home/devtools.nix
+                ./hosts/reyear-nixos/home/kde.nix
               ];
 
               home.username = "reyear";
