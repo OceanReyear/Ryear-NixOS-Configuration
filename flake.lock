@@ -1,5 +1,17 @@
 {
   "nodes": {
+    "face-image": {
+      "flake": false,
+      "locked": {
+        "path": "path:/etc/nixos/picture/head-portrait/复古证件照.jpg",
+        "type": "path"
+      },
+      "original": {
+        "path": "path:/etc/nixos/picture/head-portrait/复古证件照.jpg",
+        "type": "path"
+      },
+      "parent": []
+    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -20,6 +32,18 @@
         "repo": "home-manager",
         "type": "github"
       }
+    },
+    "lockscreen-wallpaper": {
+      "flake": false,
+      "locked": {
+        "path": "path:/etc/nixos/picture/background/【哲风壁纸】山峰 - 山脉 - 白雪.png",
+        "type": "path"
+      },
+      "original": {
+        "path": "path:/etc/nixos/picture/background/【哲风壁纸】山峰 - 山脉 - 白雪.png",
+        "type": "path"
+      },
+      "parent": []
     },
     "nixpkgs": {
       "locked": {
@@ -62,10 +86,39 @@
     },
     "root": {
       "inputs": {
+        "face-image": "face-image",
         "home-manager": "home-manager",
+        "lockscreen-wallpaper": "lockscreen-wallpaper",
         "nixpkgs": "nixpkgs",
-        "plasma-manager": "plasma-manager"
+        "plasma-manager": "plasma-manager",
+        "taskbar-icon": "taskbar-icon",
+        "wallpaper": "wallpaper"
       }
+    },
+    "taskbar-icon": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1772160939,
+        "narHash": "sha256-k1w5BP1/GAAlM0nf/FXKLfkKprWPw/xZzid6Z2RzHXA=",
+        "path": "/etc/nixos/picture/taskbar-system-icon/nixos_logo_icon.ico",
+        "type": "path"
+      },
+      "original": {
+        "path": "/etc/nixos/picture/taskbar-system-icon/nixos_logo_icon.ico",
+        "type": "path"
+      }
+    },
+    "wallpaper": {
+      "flake": false,
+      "locked": {
+        "path": "path:/etc/nixos/picture/background/【哲风壁纸】山峰 - 山脉 - 白雪.png",
+        "type": "path"
+      },
+      "original": {
+        "path": "path:/etc/nixos/picture/background/【哲风壁纸】山峰 - 山脉 - 白雪.png",
+        "type": "path"
+      },
+      "parent": []
     }
   },
   "root": "root",

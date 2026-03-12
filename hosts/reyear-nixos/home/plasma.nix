@@ -1,8 +1,14 @@
-{ pkgs, ... }:
+{ pkgs, lib, wallpaper, taskbarIconPath, lockscreenWallpaper, ... }:
 
 {
   programs.plasma = {
     enable = true;
+
+    # ============================================
+    # 壁纸配置
+    # ============================================
+    workspace.wallpaper = toString wallpaper;
+    lockscreen.wallpaper = toString lockscreenWallpaper;
 
     # ============================================
     # 面板配置
@@ -19,7 +25,7 @@
           # 左侧：应用启动器
           {
             kickoff = {
-              icon = "nix-snowflake";
+              icon = toString taskbarIconPath;
             };
           }
           # 虚拟桌面切换
@@ -61,13 +67,9 @@
       left = [ "on-all-desktops" "keep-above-windows" ];
       right = [ "help" "minimize" "maximize" "close" ];
     };
-  };
 
-  # KWin 效果配置通过 kwriteconfig 实现
-  # plasma-manager 目前不直接支持效果配置，需要使用额外配置
-  home.file.".config/kwinrc" = {
-    force = true;
-    text = ''
+    # KWin 特效配置
+    kwin.extraConfig = ''
       [Compositing]
       AnimationCurve=Linear
       AnimationDuration=200
@@ -81,7 +83,6 @@
 
       [Effect-DesktopCube]
       AnimationDuration=500
-      Cylinder=false
       Opacity=0.8
 
       [Effect-Glide]
@@ -91,21 +92,18 @@
       [Effect-MagicLamp]
       AnimationDuration=200
 
-      [Effect-WobblyWindows]
-      Drag=85
-      MoveWindow=1
-      Stiffness=15
-      WobblynessLevel=1
+      [Effect-SlideBack]
+      SlideBack=true
+
+      [Windows]
+      AnimationDuration=200
 
       [Plugins]
       blurEnabled=true
       cubeEnabled=true
       glideEnabled=true
       magiclampEnabled=true
-      wobblywindowsEnabled=true
-
-      [Windows]
-      AnimationDuration=200
+      slidebackEnabled=true
     '';
   };
 }

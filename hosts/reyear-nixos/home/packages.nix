@@ -18,10 +18,7 @@
     typora
     vlc
     libreoffice
-    davinci-resolve
     firefox
-    qq
-    wechat-uos
     lx-music-desktop
     nix-output-monitor
     nvd

@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ config, pkgs, faceImage, ... }:
 
 {
   imports = [
@@ -23,4 +23,10 @@
     kdePackages.plasma-workspace
     kdePackages.plasma-nm
   ];
+
+  # 用户头像配置
+  home.file.".face" = {
+    source = faceImage;
+    force = true;
+  };
 }

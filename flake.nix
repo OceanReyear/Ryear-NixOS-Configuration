@@ -18,6 +18,27 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
+
+    # 本地图片文件
+    face-image = {
+      url = "path:/etc/nixos/picture/head-portrait/复古证件照.jpg";
+      flake = false;
+    };
+
+    wallpaper = {
+      url = "path:/etc/nixos/picture/background/【哲风壁纸】山峰 - 山脉 - 白雪.png";
+      flake = false;
+    };
+
+    lockscreen-wallpaper = {
+      url = "path:/etc/nixos/picture/background/【哲风壁纸】山峰 - 山脉 - 白雪.png";
+      flake = false;
+    };
+
+    taskbar-icon = {
+      url = "path:/etc/nixos/picture/taskbar-system-icon/nixos_logo_icon.ico";
+      flake = false;
+    };
   };
 
   outputs = { self, nixpkgs, ... }@inputs:
@@ -37,9 +58,40 @@
           {
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
-            home-manager.users.reyear = import ./hosts/reyear-nixos/home.nix;
+            home-manager.users.reyear = { config, pkgs, ... }@args: {
+              imports = [
+                ./hosts/reyear-nixos/home/packages.nix
+                ./hosts/reyear-nixos/home/direnv.nix
+                ./hosts/reyear-nixos/home/git.nix
+                ./hosts/reyear-nixos/home/shell.nix
+                ./hosts/reyear-nixos/home/editors.nix
+                ./hosts/reyear-nixos/home/ssh.nix
+                ./hosts/reyear-nixos/home/zsh.nix
+                ./hosts/reyear-nixos/home/devtools.nix
+                ./hosts/reyear-nixos/home/plasma.nix
+              ];
+
+              home.username = "reyear";
+              home.homeDirectory = "/home/reyear";
+              home.stateVersion = "25.11";
+              programs.home-manager.enable = true;
+
+              # 用户头像配置
+              home.file.".face" = {
+                source = inputs.face-image;
+                force = true;
+              };
+            };
             home-manager.sharedModules = [
               inputs.plasma-manager.homeModules.plasma-manager
+              {
+                _module.args = {
+                  faceImage = inputs.face-image;
+                  wallpaper = inputs.wallpaper;
+                  lockscreenWallpaper = inputs.lockscreen-wallpaper;
+                  taskbarIconPath = inputs.taskbar-icon;
+                };
+              }
             ];
           }
         ];
