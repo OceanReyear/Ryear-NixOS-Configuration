@@ -18,59 +18,8 @@
 
   programs.home-manager.enable = true;
 
-  # ============================================
-  # KDE Plasma 配置（使用 xdg.configFile）
-  # 关键修复：删除 minimizeanimationEnabled=false
-  # 避免与 magiclamp 效果冲突导致双重动画
-  # ============================================
-  xdg.configFile = {
-    # KWin 窗口特效配置
-    "kwinrc" = {
-      text = ''
-        [Windows]
-        BorderSnapZone=10
-        CenterSnapZone=0
-        SnapOnlyWhenClose=false
-        ActiveMouseScreen=true
-
-        [Effect-wobblywindows]
-        Wobblyness=4
-
-        [Effect-magiclamp]
-        AnimationDuration=400
-
-        [Effect-desktopgrid]
-        BorderActivate=9
-
-        [Effect-presentwindows]
-        BorderActivateAll=9
-
-        [Plugins]
-        wobblywindowsEnabled=true
-        magiclampEnabled=true
-        desktopgridEnabled=true
-        presentwindowsEnabled=true
-        scaleEnabled=false
-      '';
-    };
-
-    # Plasma 面板配置
-    "plasmashellrc" = {
-      text = ''
-        [PlasmaViews][Panel 2]
-        floating=1
-
-        [PlasmaViews][Panel 2][Defaults]
-        thickness=44
-      '';
-    };
-  };
-
-  # 添加系统监视器小组件到包列表
   home.packages = with pkgs; [
-    kdePackages.plasma-systemmonitor
     kdePackages.plasma-workspace
-    kdePackages.ksystemstats
     kdePackages.plasma-nm
   ];
 }
