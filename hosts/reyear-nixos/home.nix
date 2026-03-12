@@ -10,6 +10,7 @@
     ./home/ssh.nix
     ./home/zsh.nix
     ./home/devtools.nix
+    ./home/plasma.nix
   ];
 
   home.username = "reyear";

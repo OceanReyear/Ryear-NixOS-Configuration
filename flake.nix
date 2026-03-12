@@ -4,13 +4,19 @@
   inputs = {
     # NixOS 官方源，锁定 25.11 分支
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
-    
+
     # 或者使用 unstable 获取最新软件
     # nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    
+
     home-manager = {
       url = "github:nix-community/home-manager/release-25.11";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    plasma-manager = {
+      url = "github:nix-community/plasma-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
     };
   };
 
@@ -32,6 +38,9 @@
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
             home-manager.users.reyear = import ./hosts/reyear-nixos/home.nix;
+            home-manager.sharedModules = [
+              inputs.plasma-manager.homeModules.plasma-manager
+            ];
           }
         ];
       };
