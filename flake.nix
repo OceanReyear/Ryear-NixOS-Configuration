@@ -48,7 +48,6 @@
                 ./hosts/reyear-nixos/home/ssh.nix
                 ./hosts/reyear-nixos/home/zsh.nix
                 ./hosts/reyear-nixos/home/devtools.nix
-                ./hosts/reyear-nixos/home/kde.nix
               ];
 
               home.username = "reyear";
