@@ -36,6 +36,7 @@
       nixosConfigurations.reyear-nixos = nixpkgs.lib.nixosSystem {
         inherit system;
         modules = [
+          ./modules/nixos/common.nix
           ./hosts/reyear-nixos/configuration.nix
           inputs.home-manager.nixosModules.home-manager
           {
