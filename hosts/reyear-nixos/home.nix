@@ -1,15 +1,7 @@
-{ config, pkgs, ... }:
+{ ... }:
 
 {
-  imports = [
-    ./home/packages.nix
-    ./home/direnv.nix
-    ./home/git.nix
-    ./home/editors.nix
-    ./home/ssh.nix
-    ./home/zsh.nix
-    ./home/devtools.nix
-  ];
+  imports = [ ];
 
   home.username = "reyear";
   home.homeDirectory = "/home/reyear";
